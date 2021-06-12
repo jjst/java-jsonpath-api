@@ -2,6 +2,10 @@ name: java-jsonpath-api
 region: fra
 services:
 - dockerfile_path: Dockerfile
+  envs:
+  - key: DOCKER_BUILDKIT
+    scope: BUILD_TIME
+    value: "1"
   github:
     branch: main
     repo: jjst/java-jsonpath-api
