@@ -6,12 +6,13 @@ import com.jayway.jsonpath.JsonPathException;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.jayway.jsonpath.spi.json.JsonProvider;
 import org.eclipse.jetty.http.HttpHeader;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Locale;
+import java.util.*;
 
 import static spark.Spark.*;
 
@@ -60,15 +61,6 @@ public class App {
             } catch (JSONException e) {
                 halt(400, "Malformed json");
             }
-            String jsonPathQuery = null;
-            if(!json.has("query")) {
-                halt(400, "Field 'query' is mandatory");
-            }
-            try {
-                jsonPathQuery = json.getString("query");
-            } catch (JSONException e) {
-                halt(400, "Malformed json");
-            }
             if(!json.has("json_str")) {
                 halt(400, "Field 'json_str' is mandatory");
             }
@@ -90,21 +82,50 @@ public class App {
                    }
                 }
             }
+            var queries= extractQueries(json);
             res.header(HttpHeader.CONTENT_TYPE.asString(), APPLICATION_JSON);
-            logger.info("query = " + jsonPathQuery);
             logger.info("json_str = " + jsonStr);
             JsonProvider jsonProvider = Configuration.defaultConfiguration().jsonProvider();
             Object document = jsonProvider.parse(jsonStr);
-            try {
-               Object result = JsonPath.read(document, jsonPathQuery);
-               return jsonProvider.toJson(result);
-            } catch(ClassCastException e) {
-               Object[] result = JsonPath.read(document, jsonPathQuery);
-               return jsonProvider.toJson(result);
-            } catch(JsonPathException e) {
-               return "";
+            Map<String, String> queryToResult = new HashMap<>();
+            for (String queryStr: queries) {
+                queryToResult.put(queryStr, extractJson(document, queryStr, jsonProvider));
             }
+            return jsonProvider.toJson(queryToResult);
         });
 
+    }
+
+    static List<String> extractQueries(JSONObject json) {
+        var jsonPathQueries = new ArrayList<String>();
+        if(!json.has("queries")) {
+            halt(400, "Field 'queries' is mandatory");
+        }
+        try {
+            JSONArray queries = json.getJSONArray("queries");
+            for(Object query: queries) {
+                try {
+                    jsonPathQueries.add((String) query);
+                } catch(ClassCastException e) {
+                    halt(400, "Malformed json");
+                }
+            }
+        } catch (JSONException e) {
+            halt(400, "Malformed json");
+        }
+        return jsonPathQueries;
+    }
+
+    static String extractJson(Object document, String jsonPathQuery, JsonProvider jsonProvider) {
+        logger.info("query = " + jsonPathQuery);
+        try {
+            Object result = JsonPath.read(document, jsonPathQuery);
+            return jsonProvider.toJson(result);
+        } catch(ClassCastException e) {
+            Object[] result = JsonPath.read(document, jsonPathQuery);
+            return jsonProvider.toJson(result);
+        } catch(JsonPathException e) {
+            return "";
+        }
     }
 }
