@@ -2,13 +2,11 @@ name: java-jsonpath-api
 region: fra
 services:
 - dockerfile_path: Dockerfile
-  envs:
-  - key: DOCKER_BUILDKIT
-    scope: BUILD_TIME
-    value: "1"
-  github:
-    branch: main
-    repo: jjst/java-jsonpath-api
+  image:
+    registry: jjst
+    registry_type: DOCKER_HUB
+    repository: java-jsonpath-api
+    tag: latest
   http_port: 4567
   instance_count: 1
   instance_size_slug: basic-xxs
