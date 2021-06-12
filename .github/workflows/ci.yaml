@@ -29,6 +29,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     env:
       DEPLOY_FILE_PATH: ./deploy/app.yaml
+      DIGITALOCEAN_APP_ID: 23442bf3-3bc5-4c9c-80af-47c34ec2e4d9
     steps:
       - uses: actions/checkout@v2
       - name: Install doctl
@@ -36,8 +37,6 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       - name: Update app spec
-        env:
-          DIGITALOCEAN_APP_ID: 23442bf3-3bc5-4c9c-80af-47c34ec2e4d9
         run: |
           doctl apps update $DIGITALOCEAN_APP_ID --spec $DEPLOY_FILE_PATH
       - name: Create deployment
