@@ -23,6 +23,7 @@ jobs:
       - name: Test image runs
         run: |
           docker run --name test-container --rm -d $IMAGE_NAME
+          sleep 5
           docker top test-container
   deploy:
     name: Deploy
