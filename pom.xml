@@ -21,11 +21,11 @@
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
         <configuration>
-          <finalName>sparkexample</finalName>
+          <finalName>java-jsonpath-api</finalName>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>sparkexample.Hello</mainClass>
+              <mainClass>jsonpath.App</mainClass>
               <classpathPrefix>dependency-jars/</classpathPrefix>
             </manifest>
           </archive>
@@ -36,8 +36,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.1</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>15</source>
+          <target>15</target>
         </configuration>
       </plugin>
       <plugin>
@@ -50,13 +50,13 @@
             </goals>
             <phase>package</phase>
             <configuration>
-              <finalName>sparkexample</finalName>
+              <finalName>java-jsonpath-api</finalName>
               <descriptorRefs>
                 <descriptorRef>jar-with-dependencies</descriptorRef>
               </descriptorRefs>
               <archive>
                 <manifest>
-                  <mainClass>sparkexample.Hello</mainClass>
+                  <mainClass>jsonpath.App</mainClass>
                 </manifest>
               </archive>
             </configuration>

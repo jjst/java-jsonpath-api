@@ -1,8 +1,8 @@
-package sparkexample;
+package jsonpath;
 
 import static spark.Spark.get;
 
-public class Hello {
+public class App {
 
     public static void main(String[] args) {
         get("/", (req, res) -> {

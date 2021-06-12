@@ -15,4 +15,4 @@ ADD src /code/src
 RUN ["mvn", "package"]
 
 EXPOSE 4567
-CMD ["java", "-jar", "target/sparkexample-jar-with-dependencies.jar"]
+CMD ["java", "-jar", "target/java-jsonpath-api-jar-with-dependencies.jar"]
