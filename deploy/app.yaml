@@ -1,0 +1,14 @@
+name: java-jsonpath-api
+region: fra
+services:
+- dockerfile_path: Dockerfile
+  github:
+    branch: main
+    repo: jjst/java-jsonpath-api
+  http_port: 4567
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: java-jsonpath-api
+  routes:
+  - path: /
+  source_dir: /

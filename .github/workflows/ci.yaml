@@ -1,0 +1,46 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build-image:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: java-jsonpath-api:latest
+    steps:
+      - uses: actions/checkout@v2
+      # In this step, this action saves a list of existing images,
+      # the cache is created without them in the post run.
+      # It also restores the cache if it exists.
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        # Ignore the failure of a step and avoid terminating the job.
+        continue-on-error: true
+      - name: Build docker image
+        run: |
+          docker build -t $IMAGE_NAME .
+      - name: Test image runs
+        run: |
+          docker run --name test-container --rm -d $IMAGE_NAME
+          docker top test-container
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      DEPLOY_FILE_PATH: ./deploy/app.yaml
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Update app spec
+        env:
+          DIGITALOCEAN_APP_ID: 23442bf3-3bc5-4c9c-80af-47c34ec2e4d9
+        run: |
+          doctl apps update $DIGITALOCEAN_APP_ID --spec $DEPLOY_FILE_PATH
+      - name: Create deployment
+        run: |
+          doctl apps create-deployment $DIGITALOCEAN_APP_ID --wait
+
