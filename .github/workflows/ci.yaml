@@ -41,7 +41,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v2
-      - uses: jjst/digitalocean-deploy-app@v0.8
+      - uses: jjst/digitalocean-deploy-app@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          application-id: 23442bf3-3bc5-4c9c-80af-47c34ec2e4d9
