@@ -1,10 +1,12 @@
 package jsonpath;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.JsonPathException;
-import com.jayway.jsonpath.PathNotFoundException;
+import com.google.gson.Gson;
+import com.jayway.jsonpath.*;
+import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
+import com.jayway.jsonpath.spi.mapper.MappingProvider;
+import lombok.Data;
 import org.eclipse.jetty.http.HttpHeader;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,10 +16,34 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
+import spark.ResponseTransformer;
+
 import static spark.Spark.*;
 
 enum JsonPathEngine {
     JAYWAY
+}
+
+class ConfigurationDefaults implements Configuration.Defaults {
+    private final JsonProvider jsonProvider = new GsonJsonProvider();
+    private final MappingProvider mappingProvider = new GsonMappingProvider();
+
+    @Override
+    public JsonProvider jsonProvider() {
+        return jsonProvider;
+    }
+
+    @Override
+    public MappingProvider mappingProvider() {
+        return mappingProvider;
+    }
+
+    @Override
+    public Set<Option> options() {
+        return EnumSet.noneOf(Option.class);
+    }
 }
 
 public class App {
@@ -26,7 +52,10 @@ public class App {
 
     private static Logger logger = LoggerFactory.getLogger(App.class);
 
+    private static ResponseTransformer responseTransformer = new JsonTransformer();
+
     public static void main(String[] args) {
+        Configuration.setDefaults(new ConfigurationDefaults());
         // CORS handling
         options("/*",
                 (request, response) -> {
@@ -50,8 +79,10 @@ public class App {
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
 
         post("/", (req, res) -> {
+            res.type(APPLICATION_JSON);
             if (!req.contentType().equals(APPLICATION_JSON)) {
-                halt(400, "Only 'application/json' is supported");
+                res.status(Status.BAD_REQUEST.getStatusCode());
+                return Problem.valueOf(Status.BAD_REQUEST, "Only 'application/json' is supported");
             }
             // FIXME: ok parsing json manually gets annoying quickly, maybe i do want
             // some automated mapping thingy or at least to read into a record class
@@ -59,15 +90,18 @@ public class App {
             try {
                 json = new JSONObject(req.body());
             } catch (JSONException e) {
-                halt(400, "Malformed json");
+                res.status(Status.BAD_REQUEST.getStatusCode());
+                return Problem.valueOf(Status.BAD_REQUEST, "Malformed JSON");
             }
             if(!json.has("json_str")) {
-                halt(400, "Field 'json_str' is mandatory");
+                res.status(Status.BAD_REQUEST.getStatusCode());
+                return Problem.valueOf(Status.BAD_REQUEST, "Field 'json_str' is mandatory");
             }
             String jsonStr = null;
             try {
                 jsonStr = json.getString("json_str");
             } catch (JSONException e) {
+                logger.error("Error parsing json from request", e);
                 halt(400, "Malformed json: json_str field should be of type string");
             }
             var engine = JsonPathEngine.JAYWAY;
@@ -83,7 +117,6 @@ public class App {
                 }
             }
             var queries= extractQueries(json);
-            res.header(HttpHeader.CONTENT_TYPE.asString(), APPLICATION_JSON);
             logger.info("json_str = " + jsonStr);
             JsonProvider jsonProvider = Configuration.defaultConfiguration().jsonProvider();
             Object document = jsonProvider.parse(jsonStr);
