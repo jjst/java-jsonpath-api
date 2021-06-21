@@ -1,16 +1,19 @@
 package jsonpath;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.spi.json.GsonJsonProvider;
-import com.jayway.jsonpath.spi.json.JsonProvider;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.zalando.problem.gson.ProblemAdapterFactory;
 import spark.ResponseTransformer;
 
 public class JsonTransformer implements ResponseTransformer {
 
-    JsonProvider jsonProvider = new GsonJsonProvider();
+    Gson gson =
+        new GsonBuilder()
+                .registerTypeAdapterFactory(new ProblemAdapterFactory())
+                .create();
 
     @Override
     public String render(Object model) {
-        return jsonProvider.toJson(model);
+        return gson.toJson(model);
     }
 }
