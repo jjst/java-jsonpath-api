@@ -56,10 +56,13 @@ public class App {
     private static ResponseTransformer jsonTransformer = new JsonTransformer();
 
     public static void main(String[] args) {
+        // JSonpath config
         Configuration.setDefaults(new ConfigurationDefaults());
         // CORS handling
         options("/*", App::setCorsHeaders);
+        // Set CORS headers
         before((request, response) -> response.header("Access-Control-Allow-Origin", "*"));
+        // Set up the actual API endpoint
         post("/", App::handleParseRequest, jsonTransformer);
     }
 
