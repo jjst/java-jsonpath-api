@@ -1,5 +1,13 @@
 name: java-jsonpath-api
 region: fra
+envs:
+  - key: LS_ACCESS_TOKEN
+    scope: RUN_TIME
+    type: SECRET
+    value: EV[1:Kis70RPMAjqaK93W0YGxEfpIYRPgoMC6:m5TXooMN3S+DIowx9RGQVzAUC+c1K/laiQ2ITkmMtlkz6BcaASdIKzRC7JIrzSg6Gxbnhc9cV12cpVB/bKt7M5RFoaMko7b+Ys/hSqlJ8jicumMDzjexYgHwqF3ygBA8rAgfQuNGfWWFmxwWQtWIGJsgpqojkeFQ]
+  - key: LS_SERVICE_NAME
+    scope: RUN_TIME
+    value: java-jsonpath-api
 services:
 - dockerfile_path: Dockerfile
   image:
